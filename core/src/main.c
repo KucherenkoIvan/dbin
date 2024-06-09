@@ -1,11 +1,7 @@
-#include <netdb.h>
-#include <netinet/in.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h> // read(), write(), close()
 
 #define MAX_BUF_SIZE 80
@@ -28,69 +24,6 @@ unsigned long ID_LOCK = 0;
 FILE *LOCKFILE = NULL;
 FILE *DB_DATA = NULL;
 FILE *INDEX = NULL;
-
-// Function designed for chat between client and server.
-void echo(int connfd) {
-  char buff[MAX_BUF_SIZE];
-  int n;
-  for (;;) {
-    bzero(buff, MAX_BUF_SIZE);
-
-    // read the message from client and copy it in buffer
-    read(connfd, buff, sizeof(buff));
-    // print buffer which contains the client contents
-    printf("From client: %s\t To client : %s\n", buff, buff);
-
-    // and send that buffer back to client
-    write(connfd, buff, sizeof(buff));
-  }
-}
-
-int create_tcp_socket() {
-  int sockfd;
-  // socket create and verification
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (sockfd == -1) {
-    printf("Socket creation failed...\n");
-    return -1;
-  }
-
-  return sockfd;
-}
-
-int create_tcp_server(int _PORT, int sockfd) {
-  int connfd, len;
-  struct sockaddr_in servaddr, cli;
-
-  bzero(&servaddr, sizeof(servaddr));
-
-  // assign IP, PORT
-  servaddr.sin_family = AF_INET;
-  servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  servaddr.sin_port = htons(_PORT);
-
-  // Binding newly created socket to given IP and verification
-  if ((bind(sockfd, (SA *)&servaddr, sizeof(servaddr))) != 0) {
-    printf("Socket bind failed...\n");
-    return -1;
-  }
-
-  // Now server is ready to listen and verification
-  if ((listen(sockfd, 5)) != 0) {
-    printf("Listen failed...\n");
-    return -1;
-  }
-  len = sizeof(cli);
-
-  // Accept the data packet from client and verification
-  connfd = accept(sockfd, (SA *)&cli, &len);
-  if (connfd < 0) {
-    printf("Server accept failed...\n");
-    return -1;
-  }
-
-  return connfd;
-}
 
 int encode_frame(const int flags, const unsigned char *payload,
                  int payload_size, unsigned char *write_buffer) {
@@ -173,16 +106,7 @@ int get_incremental_id() {
   return ID_LOCK;
 }
 
-// Driver function
 int main() {
-  // int sockfd = create_tcp_socket();
-  // int connfd = create_tcp_server(PORT, sockfd);
-  // Function for chatting between client and server
-  // echo(connfd);
-
-  // After chatting close the socket
-  // close(sockfd);
-
   setup_lockfile();
 
   for (int i = 0; i <= 0xff; i++)
@@ -221,10 +145,4 @@ int main() {
 
   fgets(line, sizeof(line), test);
   printf("%s", line);
-
-  // fclose(test);
-
-  // unsigned char tb[] = {0, 0, 0, 0, 0, 0, 0};
-  // fseek(write_ptr, 0, SEEK_SET);
-  // fwrite(tb, sizeof(tb), 1, write_ptr);
 }
