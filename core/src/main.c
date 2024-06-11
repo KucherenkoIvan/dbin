@@ -5,8 +5,6 @@
 #include <unistd.h> // read(), write(), close()
 
 #define MAX_BUF_SIZE 80
-#define PORT 8080
-#define SA struct sockaddr
 
 const unsigned char VERSION = 1;
 const int FRAME_BUFFER_SIZE = 0xffff;
@@ -24,6 +22,12 @@ unsigned long ID_LOCK = 0;
 FILE *LOCKFILE = NULL;
 FILE *DB_DATA = NULL;
 FILE *INDEX = NULL;
+
+void debug_print_bytes(unsigned char *bytes, int size) {
+  for (int i = 0; i < size; i++) {
+    printf("Byte[%d]: %x\n", i, bytes[i]);
+  }
+}
 
 int encode_frame(const int flags, const unsigned char *payload,
                  int payload_size, unsigned char *write_buffer) {
@@ -56,9 +60,9 @@ int decode_frame(unsigned char *frame, int frame_length,
     return -1;
   }
 
-  memcpy(write_buffer, &frame[5], frame_length - 5);
+  memcpy(write_buffer, &frame[HEADER_SIZE], frame_length - HEADER_SIZE);
 
-  return frame_length - 5;
+  return frame_length - HEADER_SIZE;
 }
 
 bool file_exists(const char *filename) { return access(filename, F_OK) == 0; }
@@ -137,6 +141,20 @@ int write_new_record(unsigned char *payload, int payload_length) {
 
 int get_nth_byte(int val, int n) { return (val >> (8 * (sizeof(int) - n - 1))) & 0x00ff; }
 
+int build_int(unsigned char *buffer) { 
+  if (buffer == NULL) {
+    return 0;
+  }
+
+  int result = 0;
+
+  for (int i = 0; i < 4; i++) {
+    result += (buffer[i] << (8 * (3 - i)));
+  }
+
+  return result;
+}
+
 void write_index(int head_pos, int id) {
   if (id <= 0) 
     id = get_incremental_id();
@@ -170,14 +188,56 @@ void Create(unsigned char *payload, int size) {
   write_index(head_pos, -1);
 }
 
-unsigned char* Read(int id) {
+unsigned char* Read(int id, int* size) {
   // allocate buffer
+  unsigned char *buffer = malloc(8);
+
+  create_file_if_not_exists("index.idx"); 
+
+  int parsed_id = 0;
+
+  FILE *read_ptr;
+  read_ptr = fopen("index.idx", "rb");
+
   // read index by 8 byte chuncks (offset-id) until found id or EOF
+  do {
+    fread(buffer, 8, 1, read_ptr);
+
+    parsed_id = build_int(buffer + 4);
+  } while (parsed_id != id && feof(read_ptr) == 0);
+
+  fclose(read_ptr);
+
+  int offset = build_int(buffer);
+
+  free(buffer);
+  buffer = malloc(HEADER_SIZE);
+
   // read data file or return null
+  if (parsed_id != id) {
+    return NULL;
+  }
+
+  read_ptr = fopen("data.dbin", "rb");
   // fseek to offset
+  fseek(read_ptr, offset, SEEK_SET);
   // read HEADER_SIZE bytes
+  // TODO: header validation
   // parse and validate header
+  fread(buffer, HEADER_SIZE, 1, read_ptr);
+
   // read PAYLOAD_LENGTH bytes to buffer from 1st step
+  unsigned char temp_buffer[4] = { 0 };
+  memcpy(temp_buffer + 2, buffer + (HEADER_SIZE - 2), 2);
+  *size = build_int(temp_buffer);
+
+  free(buffer);
+  buffer = malloc(*size);
+  fread(buffer, *size, 1, read_ptr);
+
+  fclose(read_ptr);
+
+  return buffer;
   // return buffer (probably should use structure { p*, p_size })
 }
 
@@ -190,15 +250,36 @@ void HardDelete() { /* write zeros over record OR clear index to make in unsearc
 int main() {
   setup_lockfile();
 
-  unsigned char test_payload[] =
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec "
-      "tincidunt neque. Duis nulla lectus, tristique ac mattis quis, "
-      "efficitur "
-      "ac nunc. Integer mollis, dolor at dictum vulputate, arcu ipsum "
-      "commodo "
-      "neque, nec imperdiet diam dui feugiat libero. Donec eget tempus ante, "
-      "id posuere turpis. Fusce molestie nisi tincidunt augue.";
-  int payload_size = sizeof(test_payload);
+  // unsigned char test_payload[] =
+  //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris nec "
+  //     "tincidunt neque. Duis nulla lectus, tristique ac mattis quis, "
+  //     "efficitur "
+  //     "ac nunc. Integer mollis, dolor at dictum vulputate, arcu ipsum "
+  //     "commodo "
+  //     "neque, nec imperdiet diam dui feugiat libero. Donec eget tempus ante, "
+  //     "id posuere turpis. Fusce molestie nisi tincidunt augue.";
+  // int payload_size = sizeof(test_payload);
+  //
+  // for (int i = 0; i < 100; i++)
+  //   Create(test_payload, payload_size);
+
+  unsigned char words[][30] = { "one", "two", "three", "four", "five", "f", "u", "gay", "meow" };
+
+  for (int i = 0; i < 9; i++) {
+    printf("Word: %s\n", words[i]);
+
+    Create(words[i], 30);
+  }
+
+
+  int size = -1;
+  unsigned char *data = Read(8, &size);
+  // Read(919);
+
+  unsigned char str[size];
+  memcpy(str, data, size);
+
+  printf("%s\n", str);
 
   // FILE *test;
   // test = fopen("test.bin", "r");
