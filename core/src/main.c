@@ -67,10 +67,11 @@ int decode_frame(unsigned char *frame, int frame_length,
 
 bool file_exists(const char *filename) { return access(filename, F_OK) == 0; }
 
-void create_file_if_not_exists(const char *filename) { 
-  if (file_exists(filename)) return; 
+void create_file_if_not_exists(const char *filename) {
+  if (file_exists(filename))
+    return;
 
-  FILE* t = fopen(filename, "w");
+  FILE *t = fopen(filename, "w");
   fclose(t);
 }
 
@@ -121,8 +122,7 @@ int write_new_record(unsigned char *payload, int payload_length) {
   unsigned char write_buffer[FRAME_BUFFER_SIZE];
   int flags = 0x00;
 
-  int frame_size =
-      encode_frame(flags, payload, payload_length, write_buffer);
+  int frame_size = encode_frame(flags, payload, payload_length, write_buffer);
 
   create_file_if_not_exists("data.dbin");
 
@@ -131,17 +131,18 @@ int write_new_record(unsigned char *payload, int payload_length) {
 
   int head_pos = ftell(write_ptr);
 
-  fwrite(write_buffer, frame_size, 1,
-         write_ptr);
+  fwrite(write_buffer, frame_size, 1, write_ptr);
 
   fclose(write_ptr);
 
   return head_pos;
 }
 
-int get_nth_byte(int val, int n) { return (val >> (8 * (sizeof(int) - n - 1))) & 0x00ff; }
+int get_nth_byte(int val, int n) {
+  return (val >> (8 * (sizeof(int) - n - 1))) & 0x00ff;
+}
 
-int build_int(unsigned char *buffer) { 
+int build_int(unsigned char *buffer) {
   if (buffer == NULL) {
     return 0;
   }
@@ -156,11 +157,11 @@ int build_int(unsigned char *buffer) {
 }
 
 void write_index(int head_pos, int id) {
-  if (id <= 0) 
+  if (id <= 0)
     id = get_incremental_id();
 
   int size = sizeof(int);
-  unsigned char write_buffer[size * 2]; 
+  unsigned char write_buffer[size * 2];
 
   int i = 0;
 
@@ -172,13 +173,12 @@ void write_index(int head_pos, int id) {
     write_buffer[i] = get_nth_byte(id, i);
   }
 
-  create_file_if_not_exists("index.idx"); 
+  create_file_if_not_exists("index.idx");
 
   FILE *write_ptr;
   write_ptr = fopen("index.idx", "ab");
 
-  fwrite(write_buffer, size * 2, 1,
-         write_ptr);
+  fwrite(write_buffer, size * 2, 1, write_ptr);
 
   fclose(write_ptr);
 }
@@ -188,11 +188,11 @@ void Create(unsigned char *payload, int size) {
   write_index(head_pos, -1);
 }
 
-unsigned char* Read(int id, int* size) {
+unsigned char *Read(int id, int *size) {
   // allocate buffer
   unsigned char *buffer = malloc(8);
 
-  create_file_if_not_exists("index.idx"); 
+  create_file_if_not_exists("index.idx");
 
   int parsed_id = 0;
 
@@ -227,7 +227,7 @@ unsigned char* Read(int id, int* size) {
   fread(buffer, HEADER_SIZE, 1, read_ptr);
 
   // read PAYLOAD_LENGTH bytes to buffer from 1st step
-  unsigned char temp_buffer[4] = { 0 };
+  unsigned char temp_buffer[4] = {0};
   memcpy(temp_buffer + 2, buffer + (HEADER_SIZE - 2), 2);
   *size = build_int(temp_buffer);
 
@@ -241,11 +241,16 @@ unsigned char* Read(int id, int* size) {
   // return buffer (probably should use structure { p*, p_size })
 }
 
-// functions below require solution for fragmentation problem to work efficiently
-// another index for free space and more complex allocation logic will be implemented in v0.2
-void Update() { /* think of it later */ }
-void Delete() { /* just set the flags */ }
-void HardDelete() { /* write zeros over record OR clear index to make in unsearchable OR both */ }
+// functions below require solution for fragmentation problem to work
+// efficiently another index for free space and more complex allocation logic
+// will be implemented in v0.2
+void Update() { /* think of it later */
+}
+void Delete() { /* just set the flags */
+}
+void HardDelete() { /* write zeros over record OR clear index to make in
+                       unsearchable OR both */
+}
 
 int main() {
   setup_lockfile();
@@ -256,21 +261,21 @@ int main() {
   //     "efficitur "
   //     "ac nunc. Integer mollis, dolor at dictum vulputate, arcu ipsum "
   //     "commodo "
-  //     "neque, nec imperdiet diam dui feugiat libero. Donec eget tempus ante, "
-  //     "id posuere turpis. Fusce molestie nisi tincidunt augue.";
+  //     "neque, nec imperdiet diam dui feugiat libero. Donec eget tempus ante,
+  //     " "id posuere turpis. Fusce molestie nisi tincidunt augue.";
   // int payload_size = sizeof(test_payload);
   //
   // for (int i = 0; i < 100; i++)
   //   Create(test_payload, payload_size);
 
-  unsigned char words[][30] = { "one", "two", "three", "four", "five", "f", "u", "gay", "meow" };
+  unsigned char words[][30] = {"one", "two", "three", "four", "five",
+                               "f",   "u",   "gay",   "meow"};
 
   for (int i = 0; i < 9; i++) {
     printf("Word: %s\n", words[i]);
 
     Create(words[i], 30);
   }
-
 
   int size = -1;
   unsigned char *data = Read(8, &size);
