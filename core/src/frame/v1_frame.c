@@ -7,7 +7,7 @@
 #include "../utils/utils.h"
 #include "./frame.h"
 
-Ptr_Pass *encode_frame(const int flags, const Ptr_Pass *data_ptr) {
+Blob *encode_frame(const int flags, const Blob *data_ptr) {
   if (data_ptr == NULL) {
     return NULL;
   }
@@ -20,7 +20,7 @@ Ptr_Pass *encode_frame(const int flags, const Ptr_Pass *data_ptr) {
 
   int frame_size = V1_HEADER_SIZE + data_ptr->size;
 
-  Ptr_Pass *frame = malloc(sizeof(struct Ptr_Pass));
+  Blob *frame = malloc(sizeof(struct Blob));
   frame->size = frame_size;
 
   unsigned char *frame_bytes = malloc(frame_size);

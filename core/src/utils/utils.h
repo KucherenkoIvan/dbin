@@ -1,7 +1,7 @@
-typedef struct Ptr_Pass {
+typedef struct Blob {
   int size;
   unsigned char *data;
-} Ptr_Pass;
+} Blob;
 
 void debug_print_bytes(unsigned char *bytes, int size);
 bool file_exists(const char *filename);
