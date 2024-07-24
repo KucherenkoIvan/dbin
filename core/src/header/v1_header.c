@@ -5,7 +5,17 @@
 #include <unistd.h>
 
 #include "../utils/utils.h"
-#include "header.h"
+#include "./header.h"
+
+const unsigned char VERSION = 1;
+const unsigned char EXAMPLE_V1_HEADER[] = {
+    1,    // version
+    0x00, // 1st byte of flags
+    0x00, // 2nd byte of flags
+    0x00, // 1st byte of data_size
+    0x00, // 2nd byte of data_size
+};
+const int V1_HEADER_SIZE = sizeof(EXAMPLE_V1_HEADER);
 
 FILE *HEADER_WRITE_PTR = NULL;
 FILE *HEADER_READ_PTR = NULL;

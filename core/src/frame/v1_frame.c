@@ -7,6 +7,8 @@
 #include "../utils/utils.h"
 #include "./frame.h"
 
+const int FRAME_BUFFER_SIZE = 0xffff;
+
 Blob *encode_frame(const int flags, const Blob *data_ptr) {
   if (data_ptr == NULL) {
     return NULL;

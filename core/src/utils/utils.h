@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 typedef struct Blob {
   int size;
   unsigned char *data;

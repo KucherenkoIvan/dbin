@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "../frame/frame.h"
+#include "../header/header.h"
 #include "../utils/utils.h"
 #include "io.h"
 
@@ -49,6 +50,38 @@ void setup_lockfile() {
     for (int i = 0; i < LOCK_SIZE; i++) {
       ID_LOCK += lock_buf[i] << (8 * (LOCK_SIZE - i - 1));
     }
+  }
+}
+
+void setup_indexfile() {
+  if (IDX_WRITE_PTR == NULL) {
+    IDX_WRITE_PTR = fopen("index.idx", "ab");
+  }
+
+  bool datafile_exists = file_exists("index.idx");
+
+  if (!datafile_exists) {
+    fwrite("", 0, 1, IDX_WRITE_PTR);
+  }
+
+  if (IDX_READ_PTR == NULL) {
+    IDX_READ_PTR = fopen("index.idx", "rb");
+  }
+}
+
+void setup_datafile() {
+  if (DATA_WRITE_PTR == NULL) {
+    DATA_WRITE_PTR = fopen("data.dbin", "ab");
+  }
+
+  bool datafile_exists = file_exists("data.dbin");
+
+  if (!datafile_exists) {
+    fwrite("", 0, 1, DATA_WRITE_PTR);
+  }
+
+  if (DATA_READ_PTR == NULL) {
+    DATA_READ_PTR = fopen("data.dbin", "rb");
   }
 }
 
@@ -120,4 +153,54 @@ void write_index(int head_pos, int id) {
   }
 
   fwrite(write_buffer, size * 2, 1, IDX_WRITE_PTR);
+}
+
+int get_record_pos_by_id(int id) {
+  unsigned char *buffer = malloc(8);
+
+  int parsed_id = 0;
+
+  if (IDX_READ_PTR == NULL) {
+    IDX_READ_PTR = fopen("index.idx", "rb");
+  }
+
+  do {
+    fread(buffer, 8, 1, IDX_READ_PTR);
+
+    parsed_id = build_int(buffer + 4);
+  } while (parsed_id != id && feof(IDX_READ_PTR) == 0);
+
+  int offset = build_int(buffer);
+
+  free(buffer);
+
+  if (parsed_id == id)
+    return offset;
+  else
+    return -1;
+}
+
+Blob *read_record(int record_pos) {
+  if (DATA_READ_PTR == NULL) {
+    DATA_READ_PTR = fopen("data.dbin", "rb");
+  }
+
+  fseek(DATA_READ_PTR, record_pos, SEEK_SET);
+
+  unsigned char *buffer = malloc(V1_HEADER_SIZE);
+
+  fread(buffer, V1_HEADER_SIZE, 1, DATA_READ_PTR);
+
+  V1_Header *decoded_header = decode_v1_header(buffer);
+
+  free(buffer);
+  buffer = malloc(decoded_header->data_size);
+  fread(buffer, decoded_header->data_size, 1, DATA_READ_PTR);
+
+  Blob *result = malloc(sizeof(Blob));
+
+  result->size = decoded_header->data_size;
+  result->data = buffer;
+
+  return result;
 }
