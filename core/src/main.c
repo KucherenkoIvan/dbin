@@ -244,11 +244,9 @@ unsigned char *Read(int id, int *size) {
 // functions below require solution for fragmentation problem to work
 // efficiently another index for free space and more complex allocation logic
 // will be implemented in v0.2
-void Update() { /* think of it later */
-}
-void Delete() { /* just set the flags */
-}
-void HardDelete() { /* write zeros over record OR clear index to make in
+void Update() { /* think of it later */ }
+void Delete() { /* just set the flags */ }
+void HardDelete() { /* write zeros over record OR clear index to make it
                        unsearchable OR both */
 }
 
@@ -268,8 +266,8 @@ int main() {
   // for (int i = 0; i < 100; i++)
   //   Create(test_payload, payload_size);
 
-  unsigned char words[][30] = {"one", "two", "three", "four", "five",
-                               "f",   "u",   "gay",   "meow"};
+  unsigned char words[][30] = {"one",  "two", "three", "four",
+                               "five", "f",   "u",     "meow"};
 
   for (int i = 0; i < 9; i++) {
     printf("Word: %s\n", words[i]);
