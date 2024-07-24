@@ -42,7 +42,7 @@ Blob *decode_frame(const Blob *encoded_frame) {
     return NULL;
   }
 
-  const V1_Header *header = decode_v1_header(encoded_frame->data);
+  V1_Header *header = decode_v1_header(encoded_frame->data);
 
   if (header == NULL) {
     return NULL;
@@ -58,6 +58,8 @@ Blob *decode_frame(const Blob *encoded_frame) {
 
   memcpy(frame_buffer, &encoded_frame[V1_HEADER_SIZE],
          frame->size - V1_HEADER_SIZE);
+
+  free(header);
 
   return frame;
 }

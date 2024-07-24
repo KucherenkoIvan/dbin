@@ -124,6 +124,9 @@ int write_new_record(const Blob *data) {
 
   fwrite(encoded_frame->data, encoded_frame->size, 1, DATA_WRITE_PTR);
 
+  free(encoded_frame->data);
+  free(encoded_frame);
+
   return head_pos;
 }
 
