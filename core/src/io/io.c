@@ -53,6 +53,15 @@ void setup_lockfile() {
   }
 }
 
+void save_lock() {
+  fclose(LOCKFILE_READ_PTR);
+  fclose(LOCKFILE_WRITE_PTR);
+
+  printf("lock\n");
+
+  setup_lockfile();
+}
+
 void setup_indexfile() {
   if (IDX_WRITE_PTR == NULL) {
     IDX_WRITE_PTR = fopen("index.idx", "ab");
@@ -69,6 +78,14 @@ void setup_indexfile() {
   }
 }
 
+void save_index() {
+  fclose(IDX_READ_PTR);
+  fclose(IDX_WRITE_PTR);
+
+  printf("idx\n");
+  setup_indexfile();
+}
+
 void setup_datafile() {
   if (DATA_WRITE_PTR == NULL) {
     DATA_WRITE_PTR = fopen("data.dbin", "ab");
@@ -83,6 +100,14 @@ void setup_datafile() {
   if (DATA_READ_PTR == NULL) {
     DATA_READ_PTR = fopen("data.dbin", "rb");
   }
+}
+
+void save_data() {
+  fclose(DATA_READ_PTR);
+  fclose(DATA_WRITE_PTR);
+
+  printf("data\n");
+  setup_datafile();
 }
 
 void dump_id_lock() {

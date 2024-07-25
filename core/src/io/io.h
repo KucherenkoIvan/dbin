@@ -1,8 +1,14 @@
 void setup_lockfile();
 
+void save_lock();
+
 void setup_indexfile();
 
+void save_index();
+
 void setup_datafile();
+
+void save_data();
 
 void dump_id_lock();
 
