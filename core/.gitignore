@@ -1,0 +1,6 @@
+*.o
+bin
+*/**/*.gch
+data.dbin
+index.idx
+lockfile

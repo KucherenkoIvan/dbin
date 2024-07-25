@@ -71,6 +71,18 @@ int main() {
     free(b->data);
     free(b);
   }
+
+  char *line = NULL;
+  int size;
+
+  while (true) {
+    if (getline(&line, &size, stdin) != -1) {
+      printf("%s %d\n", line, size);
+    }
+  }
+
+  return 0;
+
   //
   // int size = -1;
   // unsigned char *data = Read(8, &size);
