@@ -263,23 +263,31 @@ int main() {
   // for (int i = 0; i < 100; i++)
   //   Create(test_payload, payload_size);
 
-  unsigned char words[][30] = { "one", "two", "three", "four", "five", "f", "u", "gay", "meow" };
+  unsigned char words[][30] = { "one", "two", "three", "four", "five", "f", "u", "gay", "meow", "test" };
+  int l = 10;
 
-  for (int i = 0; i < 9; i++) {
-    printf("Word: %s\n", words[i]);
+  printf("start\n");
 
-    Create(words[i], 30);
+  for (int k = 0; k < 10000; k++) {
+    for (int i = 0; i < l; i++) {
+      int size = 0;
+      unsigned char* t = Read(2 + i * k, &size);
+
+      printf("%s\n", t);
+    }
   }
 
+  printf("end\n");
 
-  int size = -1;
-  unsigned char *data = Read(8, &size);
-  // Read(919);
 
-  unsigned char str[size];
-  memcpy(str, data, size);
-
-  printf("%s\n", str);
+  // int size = -1;
+  // unsigned char *data = Read(8, &size);
+  // // Read(919);
+  //
+  // unsigned char str[size];
+  // memcpy(str, data, size);
+  //
+  // printf("%s\n", str);
 
   // FILE *test;
   // test = fopen("test.bin", "r");
